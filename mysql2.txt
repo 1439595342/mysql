@@ -1,0 +1,134 @@
+约束条件:
+Field    |      Type                       | Null | Key | Default | Extra
+当NUll值为yes时 允许为空 当为NO时 不允许为空
+KEY 为索引的类型
+default 可以设置默认值 如果缺省则为NULL
+
+修改表的结构：
+（添加表头新字段）alter table  表名  add  字段名 类型（宽度） 约束条件；
+列：alter table t1  add ddss varchar(30);
+可加 after 字段名；或者添加flrst；
+after : 是把新表头添加到表里那个表头的后面
+列： alter table t1  add asdf char(10) after asd;
+flrst :  把新添加的表头放在最前面
+alter table t1  add adf char(10) flrst
+修改一个字段的类型：
+alter table  表名 modify  字段名  类型 ( 宽度 ) 约束条件
+列如：alter table  t1  modify  name varchar(30);
+也可加 after 字段名；或者添加flrst；
+修改字段
+ALTER TABLE 表名 change 源字段名 新字段名 类型 ( 宽度 ) 约束条件
+  列：alter table t1  change  dd add char(50);
+删除字段
+– ALTER TABLE 表名  drop 字段名 ;
+列  alter table t1  drop  qwe;
+修改表名
+ALTER TABLE 表名  Rename 新表名
+列：alter table t1 rename t2;
+
+MySQL 索引概述
+索引是对记录集的多个字段进行排序的方法 创建索引可以精准的定义到一个表头 方便查询但是索引需要占物理空间
+索引类型包括 :Btree 、 B+tree 、 hash
+键值类型
+• INDEX :普通索引
+• UNIQUE :唯一索引
+• FULLTEXT :全文索引
+• PRIMARY KEY :主键
+• FOREIGN KEY :外键
+1.建表的时候指定索引字段
+列： create table  t1 
+ (name char(10),age varchar(30),kills set("book","move","yellow"),
+index (name ), index (kills));
+decr t1; 可以看出在key下面有一个MUL标记 说明成功添加了索引
+2.在已有表上设置索引：
+create index 索引名 on 表名 字段
+create index   name on t1(name);
+3.删除指定表的索引字段
+deop  index name on 表名
+drop  index  name on t1;
+
+primary key 主键
+一个表中只能有一个 primary key 字段，而且附加的值不能跟指定的主键值重复 也不能附加NULL值：
+列：create table t12 (
+    -> name char (20),
+    -> UID  int (4),
+    -> GID  int (4),
+    -> ip  varchar(40),
+    -> primary key (name));
+主键字段的 KEY 标志是 PRI
+
+2.已有的表中设置 primary key 字段(只能有一个字段附值主键 如果有另一个就先删除 )
+alter table 表名  add  primary key ( 字段名 );
+alter table t12 add primary key (UID);
+
+3.移除表中的 PRIMARY KEY 字段
+alter table   t12  drop  primary key; 
+
+4.主键primary  key  通常和auto_increment连用
+auto_increment可以让字段的值每次加一自动进行编号
+create table t12 (
+    -> name char (20),
+    -> ip  varchar(40),
+    -> primary key (name)) auto_increment;
+
+复合主键：
+复合主键就是给多个字段附加主键属性  两个字段所附的值不能一模一样
+列：create table t13 (
+    -> name char (20),
+    -> UID  int (4),
+    -> GID  int (4),
+    -> ip  varchar(40),
+    -> primary key (name，ip));
+2.在已有表上加复合键（在表里没有主键的情况下）
+alter table  t13 add primary key (UID,ip);
+3.删除复合键;
+alter table   t12  drop  primary key;
+
+foreign key 外键
+表A：参考表
+表B ：同步表
+1.参考表要建立主键且自动编号
+create table t11
+(name_id char(10),
+name char(10),
+age varchar (30),
+primary key (name_id)) auto_increment;
+2.表B的同步表的同步值附加的类型必须要与参考表参考值的类型一样
+参考值： ( name_id char(10)) //类型为char
+同步值 ： （aa_id）char  (10)   //类型要与参考值一样
+3.参考表和同步表的存储引擎必须是 engine=innodb;
+4.同步表指定外键值时要指定参考表的主键值：
+create table t11
+(user_id char(10),
+name char(10),
+age varchar (30),
+foreign key （user_id） references 表A (name_id)   //指定外键参考值
+on update cascade  on delete cascade)                 //同步修改和删除
+endine=innodb;  					//指定引擎
+5.参考表创建值时必须要同步表有相应的值时才能创建成功
+当参考表的时删除一个值时 同步表也会自动删除相应的值
+
+外键的删除：
+1.当一个表被另一个表所指定外键参考时 参考表在没解除外键的情况下是不能删除表和参考的字段的
+2.解除外键
+1)先查看建表构造外建名是什么：
+show  create  table  表名；
+2）删除
+alter table  表名 deop  foreign key  外建名
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

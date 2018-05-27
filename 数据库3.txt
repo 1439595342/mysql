@@ -1,0 +1,167 @@
+mysql 存储引擎 
+基本介绍：是mysql数据库软件自带的功能程序，每种存储引擎的功能和数据存储方式也不同，存储引擎就是处理表的处理器  。
+
+查看数据库支持的引擎：
+show  engines;
+查看已有表的指定存储引擎：
+show  create  table  表名;
+ENGINE=MyISAM 
+修改数据库的默认引擎：
+修改配置文件 vim /etc/my.cnf
+[mysql]
+default-storage-engine=myisam   //指定引擎为myisam
+重起服务: systemctl restart mysqid 
+修改已有表的默认引擎：
+alter  table  表名  engine=innodb;
+创建表时指定引擎：
+create table 表名 (字段列表 ) engnie=innodb;
+		
+2.常用存储引擎的特点 (innodb引擎和  myisam引擎)
+innodb  （执行写操作多的表适合使用innodb存储引擎，可以并发访问）
+支持事务：可以对数据库连接 操作  断开 
+事务回滚：在对数据库执行操作中 任何一步操作失败，都可以恢复操作
+行级锁：可以给表中当前的操作的行进行加锁 也就是两个人不能同时对有行级锁的表进行修改 一般也用于写锁（互斥锁）
+存储的方式:
+一个表对应2个存储文件  
+表名.frm    存放表结构
+表名.ibd    存放数据和索引
+mysql数据库服务使用事务日志文件记录/var/lib/mysql/，对innodb存储引擎表执行的sql操作。
+
+myisam:（执行查操作多的表适合使用myisam存储引擎,可以节省系统资源）
+不支持事务,事务回滚,外键
+支持表级锁：可以给整个表进行加锁 用户可以看整个表 但是不能进行修改 一般用于读锁（共享锁）
+存储方式： 
+一个表对应3个存储文件
+表名.frm      表结构
+表名.MYD    数据
+ 表名.MYI     索引
+
+事务回滚设置off
+show variables  like  "autocommit"
+set autocommit=off
+把事务回滚设置成功后 数据提交都要打  commit;
+
+
+!!!数据库导入导出
+1.导入数据
+先查看数据库默认搜索文件系统的目录：
+show  variables  like  "secure_file_priv";
+2.导进的数据文件要在数据库默认搜索文件下面 这样数据库才能搜索到对应的数据
+导入数据注意事项
+1.存储导入数据的表结构要跟导入数据的类型要符合  如果不相符则导入不进；
+2.存储导入数据的表字段要与导入数据的字段个数一样
+3.数据导入操作
+load data  infile "/var/lib/mysql-files/文件" //如果指定了目录则写指定目录的路径
+into table  导入的库.表
+fields terminated by "导入数据文件以什么分隔的"
+lines terminated  by  "\n"   // 换行输出
+导入的数据文件也可以指定目录
+修改配置文件： /etc/my.cnf
+secure_file_priv="数据目录"
+给数据目录修改所属组
+chown mysql  数据目录
+重起服务： systemctl restart mysqld
+
+数据的导出操作注意;
+1.如果是导出数据在默认文件里则不需要修改配置文件和修改所属组
+如果导入到指定文件就要进行修改配置文件和修改所属组
+操作：
+select * from  库.表名 into outfile "导出的数据存放的文件"
+如果需要自己指定分隔方式则添加
+fields terminated  by "分隔符"
+lines terminateb by "\n";
+
+管理表操作
+insert into  表名  附的值（值要与字段类型和约束条件匹配）
+insert  into  库.表     values(字段值列表)，(字段值列表); //同时给多个字段附值
+insert  into  库.表（字段名列表） values(字段值列表);  //单独给一个字段附值
+查看表操作：
+select   *  from  库.表   //查看表中所有行的所有字段的值
+select  字段名1，字段名2 ，字段名n  from  库.表  ；//查看表中指定字段的值
+select  字段名1，字段名2 ，  from  库.表  where    匹配条件  //查看指定行的指定字段的值
+修改字段的值
+update   库.表  set  字段名=值，字段名=值；
+update   库.表  set  字段名=值，字段名=值  where    匹配条件 ;  //修改与条件匹配的记录指定字段的值
+删除操作:
+删除表所有行
+delete  from   库.表；
+仅删除与条件匹配的记录
+delete  from   库.表  where    匹配条件 ；
+
+范围内比较 
+between  数字1  and  数字2   //数字1到数字10之间的数
+列如： select  用户  from users  where  uid  between  1 and 100;
+查询uid在1到100 之间的用户名
+字段名   in  (值列表)   //在的范围
+select  用户 from users  where  用户 in （“root”）; 
+查询那些用户是root
+in 后面只能是字符类型 不能数字 如果是数字就用 !=数字
+ not  in   (值列表)       // 不在的范围              
+select  用户 from users  where  用户  no in （“root”）
+ 查询那些用户不是root
+
+逻辑比较（就是有多个查询条件）
+ and             多个条件同时成立    才匹配
+  or               多个条件,某一个条件成立  就匹配
+！ 或 not        取反  
+
+匹配空     字段名  is  null
+select * from  users where  uid  is null;
+查询整个表中 uid 为空的值
+ 匹配不为空     字段名  is  not  null
+
+模糊匹配 (也可以用于数字匹配)
+字段名  like   '表达式';
+select  用户  from users  where  用户 like  "r%%t";  //  ( % ) 表示零个或多个字符
+select  用户  from users  where  用户 like  "r___t";   // ( _ )  表任意一个字符
+
+正则匹配
+^ 开头   $结尾     . 单个字符	* 多个字符  [  ] 集合号
+select 用户 from users  where  gid  regexp '[0-9]';
+查询users只要gid号是0-9之间的数字用户；
+select  用户 from  users where gig regexp “^r..t$”;
+查询users 表中用户 只要是以r开头t结尾中间可以任意两个字符的用户gid 显示出来
+
+聚集函数（对字段的值做统计，字段的类型要求是数值类型）
+count(字段名）统计字段值的个数
+select count(uid ) from  users ; 后面也可以跟条件查询  where  gig between  1 and  100；
+统计表里gid总个数  加条件就是 统计 gig 在 1到100 数字之间的总个数；
+
+sum(字段名）  求和
+select  sum（gid） from  users  where  gid<=100;
+查询表里gid大于100的和
+
+max(字段名）  输出字段值的最大值
+ select max(uid) from users;
+min(字段名）  输出字段值的最小值
+select min(uid) from users;
+
+avg(字段名）  输出字段值的平均值
+select avg(gid) from users where gid<=100
+查询表里gid大于100的平均值
+
+查询不显示字段重复值   distinct 字段名
+select  distinct shell  from  usertab where  uid >10  and uid<=100;
+查询表里uid大于10有小于100的解释器几种类型；
+
+查询排序 (按照数值类型的字段排队
+sql查询  order  by  字段名  asc|desc; //默认是asc升序  desc 是降序
+select  username,uid   from  usertab where  uid >10  and uid<=100
+order  by  uid;
+select  username,uid   from  usertab where  uid >10  and uid<=100
+order  by  uid  desc;
+
+限制查询显示行数(默认显示所有查询的记录)
+sql查询  limit  数字； 显示查询结果的前几行
+sql查询  limit  数字1，数字2；  显示查询结果指定范围的行
+select  username,uid   from  usertab where  uid >10  and uid<=100
+select  username,uid   from  usertab where  uid >10  and uid<=100
+order  by  uid  desc  limit  1;
+select  username,uid   from  usertab where  uid >10  and uid<=100
+order  by  uid  desc  limit 2,3;
+
+查询结果过滤基本用法
+– SQL 查询 HAVING 条件表达式;
+– SQL 查询 where 条件 HAVING 条件表达式;
+– SQL 查询 group by 字段名
+式;

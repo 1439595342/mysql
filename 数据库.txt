@@ -1,0 +1,119 @@
+数据库介绍：
+DB 数据库：依照某种数据模型进行组织并存放到存储器
+的数据集合
+DBMS：数据库管理系统:用来操纵和管理数据库的大型服务
+软件
+DBS 数据库系统:即 DB+DBMS ,指带有数据库并整合
+了数据库管理软件的计算机系统
+E-R 数据模型
+• 实体 - 关系 模型
+mysql特点及应用：
+适用于中小规模、关系型数据库系统
+– 支持 Linux/Unix 、 Windows 等多种操作系统
+– 使用 C 和 C++ 编写,可移植性强
+– 通过 API 支持 Python/Java/Perl/PHP 等语言
+• 典型应用环境
+– LAMP 平台,与 Apache HTTP Server 组合
+– LNMP 平台,与 Nginx 组合
+
+装包：（如果电脑上有Mariadb的话 需要提前卸载 不然会有冲突）
+ yum -y install perl-JSON
+rpm -Uvh mysql-community-*.rpm
+mysql-5.7.17.tar
+mysql-community-client-5.7.17-1.el7.x86_64.rpm
+mysql-community-common-5.7.17-1.el7.x86_64.rpm
+mysql-community-devel-5.7.17-1.el7.x86_64.rpm
+mysql-community-embedded-5.7.17-1.el7.x86_64.rpm
+mysql-community-embedded-compat-5.7.17-1.el7.x86_64.rpm
+mysql-community-embedded-devel-5.7.17-1.el7.x86_64.rpm
+mysql-community-libs-5.7.17-1.el7.x86_64.rpm
+mysql-community-libs-compat-5.7.17-1.el7.x86_64.rpm
+mysql-community-minimal-debuginfo-5.7.17-1.el7.x86_64.rpm
+mysql-community-server-5.7.17-1.el7.x86_64.rpm
+mysql-community-test-5.7.17-1.el7.x86_64.rpm
+
+起服务：
+systemctl  restart mysqld
+systemctl enable  mysqld
+
+配置文件：/etc/my.cnf 
+错误日志文件： /var/log/mysqld.log （首次安装随机密码生成存放位置）
+数据库目录      /var/lib/mysql 
+
+
+用命令提取原始密码：
+grep password /var/log/mysqld.log
+修改密码；（数据库密码设置要达到默认8个字长度和密码复杂性）
+可以修改密码默认值:
+先用原始密码进入数据库：
+mysql -uroot -p '随即密码'
+修改验证长度：set global validate_password_policy=0；     	// 只验证长度
+修改默认长度值：set global validate_password_length=6; 	// 修改密码长度
+修改登陆密码：alter user user() identified by '需要修改的密码'；
+然后使用新密码进行登陆
+
+
+SQL命令：
+查看库：show databases;
+进入其中一个库：use  库名
+显示当前所在的库：select database();
+创建数据库： create database  库名；
+删除一个库：drop  database 库名；
+显示已有的表：show tables;
+创建一个数据表：create  table  表名  （字段名  数值类型或数据字符 （限制条件））；
+查看表结构：desc 表名；
+查看表里的内容：select  * from  表名；
+修改字段名的表内容：update  表名  set  字段名=修改的内容；
+insert  into  表名 values 写入的内容;(记得每一个值都要用逗号分隔)
+删除一个表：drop table 表名；
+删除表里的内容 :  delete from 表名;
+看表的默认信息 : show create table  表名;
+在建表的指定字符集: create  table  表名  （字段名  数据类型或数据字符 （限制条件））DEFAULT CHARSET=utf8
+在已有表的情况下修改字符集：  alter table 表名 DEFAULT CHARSET=utf8
+
+建表时数值的类型：
+类型         字节大小       有括号范围        	  无括号范围           		 用途
+tinyint           1  	   -128～127		  0～255	      		微小的整数
+SMALLINT     2 	   -32768~32767          0 ~ 65535			小整数
+MEDIUMINT  3 	   -2 23 ~ 2 23 - 1         0 ~ 2 (24次方) -1 		中整数
+INT 		4 	    -2 31 ~ 2 31 -1          0 ~ 2 32 -1                       大整数
+BIGINT 	8	     -2 63 ~ 2 63 -1	     0 ~ 2 64 -1		 极大整数
+FLOAT 	4 	 							单精度浮点数
+DOUBLE	8 								双精度浮点数
+ FLOAT类型和DOUBLE类型举例:
+(M,N) M表示整数位  N表示小数位  
+（7.2）表示有7个数字 2个小数位 就代表整数位有5个 最大值也就是99999.99 
+
+字符的类型:
+char  （字符数）
+最大长度是255字符
+当不够指定字符数时 会自动用空格补齐  当超出指定字符数时 会报错无法写入数据
+varchar( 字符数 )
+按数据实际大小分配存储空间   当超出指定字符数时 会报错无法写入数据
+大文本类型: text/blob    字符数大于 65535 存储时使用
+
+日期时间类型的表达
+日期: date  如（0806）八月六号
+年份: year   如（1997）支持的范围：1901~2155
+时间：time  如:(083526)八点三十五分二十六秒
+日期加时间：
+DATETIME  如(19970806083526) 范围： 0~ 9999-12-31
+TIMESTAMP：范围： 0~ 2038-1-19
+
+
+时间函数
+now() 获取系统当前日期和时间
+year() 执行时动态获得系统日期时间
+sleep(N) 休眠 N 秒
+curdate() 获取当前的系统日期
+curtime() 获取当前的系统时刻
+month() 获取指定时间中的月份
+date() 获取指定时间中的日期
+time() 获取指定时间中的时刻
+
+枚举类型
+enum( 值 1, 值 2, 值 N)   定值集合中选择单个值
+set     ( "值 1", "值 2", "值 N")   定值集合中选择一个或多个值
+
+
+
